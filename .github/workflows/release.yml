@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0)"
+        required: true
+        default: "v0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      - name: Decode signing keystore (if configured)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.LEDGERLY_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "LEDGERLY_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "SIGNING=release key" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No LEDGERLY_KEYSTORE_BASE64 secret: release APKs are signed with a debug key (testing only, not for Play)."
+            echo "SIGNING=debug key (testing only)" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build release APKs
+        env:
+          LEDGERLY_KEYSTORE_PASSWORD: ${{ secrets.LEDGERLY_KEYSTORE_PASSWORD }}
+          LEDGERLY_KEY_ALIAS: ${{ secrets.LEDGERLY_KEY_ALIAS }}
+          LEDGERLY_KEY_PASSWORD: ${{ secrets.LEDGERLY_KEY_PASSWORD }}
+        run: gradle test :app:assembleFullRelease :app:assembleNotifOnlyRelease --console=plain --stacktrace -x :app:test
+
+      - name: Collect APKs
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/full/release/*.apk "dist/ledgerly-${TAG}-full.apk"
+          cp app/build/outputs/apk/notifOnly/release/*.apk "dist/ledgerly-${TAG}-notif-only.apk"
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          ls -l dist
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ledgerly-release-apks
+          path: dist/
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "Ledgerly $TAG" \
+            --prerelease \
+            --notes "Android release build. Signed with: ${SIGNING}.
+
+          - ledgerly-${TAG}-full.apk: SMS + notification capture
+          - ledgerly-${TAG}-notif-only.apk: notification capture only (no SMS permissions)
+
+          Early preview: not yet tested on a device."

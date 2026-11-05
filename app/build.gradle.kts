@@ -43,8 +43,23 @@ android {
         }
     }
 
+    // Release signing: real keystore from env (CI secrets). Without it, release builds fall back to the
+    // debug key so they still install for testing, but such APKs must NOT be uploaded to Play.
+    val releaseKeystore = System.getenv("LEDGERLY_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("LEDGERLY_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("LEDGERLY_KEY_ALIAS")
+                keyPassword = System.getenv("LEDGERLY_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
