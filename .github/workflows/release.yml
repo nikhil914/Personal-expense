@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     tags: ["v*"]
+    # Pushing a branch named release/vX.Y.Z also releases (tag is created by the workflow).
+    branches: ["release/v*"]
   workflow_dispatch:
     inputs:
       tag:
@@ -17,9 +19,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
+      - name: Resolve tag
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          TAG="${INPUT_TAG:-${GITHUB_REF_NAME#release/}}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "Releasing $TAG"
+
       - uses: actions/checkout@v5
 
       - uses: actions/setup-java@v5
