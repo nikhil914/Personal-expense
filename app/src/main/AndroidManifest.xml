@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      SMS capture (full flavour only; removed in the notifOnly flavour manifest).
+      Google Play policy: READ_SMS / RECEIVE_SMS are restricted permissions. Publishing requires the
+      SMS & Call Log Permissions Declaration form claiming the "SMS-based money management" exception
+      (core functionality = automatic expense tracking from bank/UPI/card SMS), a prominent in-app
+      disclosure shown before the runtime request (see ui/onboarding), and a privacy policy.
+      Messages are parsed on-device only and never leave the device.
+    -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!-- Post-ingest prompts ("Categorised as Food. Correct?"), budget alerts, FX fee notices. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Biometric app lock. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Daily ECB reference-rate sync (the only network call the app makes). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <application
+        android:name=".LedgerlyApp"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Ledgerly"
+        tools:targetApi="35">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Ledgerly">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Live SMS capture. Only system SMS broadcasts are accepted (BROADCAST_SMS). -->
+        <receiver
+            android:name=".capture.SmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Notification capture from allow-listed bank / UPI / card apps and Gmail. -->
+        <service
+            android:name=".capture.TxnNotificationListenerService"
+            android:exported="true"
+            android:label="@string/notification_listener_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Action buttons on post-ingest notifications. -->
+        <receiver
+            android:name=".engine.NotificationActionReceiver"
+            android:exported="false" />
+
+        <!-- "Safe to spend today" Glance widget. -->
+        <receiver
+            android:name=".widget.SafeToSpendWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_safe_to_spend_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/safe_to_spend_widget_info" />
+        </receiver>
+
+        <!-- WorkManager uses its default androidx.startup initializer (merged from the library manifest). -->
+    </application>
+</manifest>

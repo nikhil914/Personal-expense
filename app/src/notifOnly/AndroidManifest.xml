@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  notifOnly flavour: Play-rejection fallback. Strips every SMS permission and the SMS receiver so the
+  build needs no SMS Permissions Declaration. Capture works through the NotificationListenerService only.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.RECEIVE_SMS" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_SMS" tools:node="remove" />
+
+    <application>
+        <receiver android:name="app.ledgerly.capture.SmsReceiver" tools:node="remove" />
+    </application>
+</manifest>
