@@ -143,8 +143,7 @@ class SafeToSpendCalculator(
             else -> z
         }
         val state = when {
-            !startOfDayPool.isPositive || remainingToday.isNegative || (amount.isZero && spentToday.isPositive) -> SafeToSpendState.OVER
-            !startOfDayPool.isPositive -> SafeToSpendState.OVER
+            !startOfDayPool.isPositive || remainingToday.isNegative -> SafeToSpendState.OVER
             (input.typicalDailySpend != null && allowance < chk(input.typicalDailySpend)) ||
                 BigDecimal(remainingToday.minor) < BigDecimal(allowance.minor) * tightRatio -> SafeToSpendState.TIGHT
             else -> SafeToSpendState.HEALTHY

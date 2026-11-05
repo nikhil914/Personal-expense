@@ -308,7 +308,7 @@ class QueryParser(
         /** English country names (lowercase) → ISO alpha-2, longest names first. */
         val countryNames: List<Pair<String, String>> by lazy {
             val extra = listOf("usa" to "US", "america" to "US", "uk" to "GB", "england" to "GB", "uae" to "AE", "dubai" to "AE")
-            (Locale.getISOCountries().map { Locale("", it).getDisplayCountry(Locale.ENGLISH).lowercase() to it }
+            (Locale.getISOCountries().map { regionLocale(it).getDisplayCountry(Locale.ENGLISH).lowercase() to it }
                 .filter { it.first.length > 3 && it.first !in setOf("chad", "jersey", "georgia", "turkey", "jordan", "guinea") } + extra)
                 .sortedByDescending { it.first.length }
         }

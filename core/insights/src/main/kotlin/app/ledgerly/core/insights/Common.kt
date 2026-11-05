@@ -156,3 +156,7 @@ internal fun dominantBaseCurrency(txns: Collection<Transaction>, fallback: Curre
 /** Sum base amounts, skipping transactions whose base currency differs from [currency]. */
 internal fun sumBase(txns: Iterable<Transaction>, currency: CurrencyCode): Money =
     Money(txns.filter { it.base.currency == currency }.sumOf { it.base.abs().minor }, currency)
+
+/** Locale for an ISO 3166 alpha-2 region code (no deprecated constructors). */
+internal fun regionLocale(code: String): Locale =
+    runCatching { Locale.Builder().setRegion(code.uppercase(Locale.ROOT)).build() }.getOrDefault(Locale.ROOT)

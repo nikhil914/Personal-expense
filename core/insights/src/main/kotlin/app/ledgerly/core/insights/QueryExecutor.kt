@@ -49,8 +49,15 @@ class QueryExecutor(
 
     fun execute(query: Query, transactions: Collection<Transaction>): Answer {
         if (query.subscriptionsOnly && query.metric in setOf(Metric.LIST, Metric.SUM, Metric.COUNT)) return subscriptions(query, transactions)
-        val out = query.outputCurrency ?: dominantBaseCurrency(transactions)
+        val baseCur = dominantBaseCurrency(transactions)
         val filtered = filter(query, transactions, query.range)
+        val requested = query.outputCurrency
+        val out = if (requested != null && filtered.any { !convertible(it, requested) }) baseCur else requested ?: baseCur
+        val note = if (requested != null && out != requested) " (no exchange rates for $requested, shown in $out)" else ""
+        return execute(query, transactions, filtered, out).let { if (note.isEmpty()) it else it.copy(text = it.text.removeSuffix(".") + note + ".") }
+    }
+
+    private fun execute(query: Query, transactions: Collection<Transaction>, filtered: List<Transaction>, out: CurrencyCode): Answer {
         val subject = subjectPhrase(query)
         val verb = if (query.direction == DirectionFilter.INCOME) "received" else "spent"
         val period = query.range?.label?.let { " $it" } ?: ""
@@ -106,7 +113,7 @@ class QueryExecutor(
         val accIds = query.account?.let { resolveAccountIds(it) }
         val tripIds = query.trip?.let { t -> trips.filter { it.name.contains(t, ignoreCase = true) || t.contains(it.name, ignoreCase = true) }.map { it.id }.toSet() }
         val countryTrips = query.country?.let { c -> trips.filter { it.countryCode.equals(c, ignoreCase = true) }.map { it.id }.toSet() }
-        val countryCurrency = query.country?.let { c -> runCatching { java.util.Currency.getInstance(Locale("", c.uppercase())).currencyCode }.getOrNull() }
+        val countryCurrency = query.country?.let { c -> runCatching { java.util.Currency.getInstance(regionLocale(c.uppercase())).currencyCode }.getOrNull() }
         val merchantNorm = query.merchant?.let { MerchantNormalizer.normalize(it) ?: it.lowercase() }
         val today = LocalDate.now(clock)
         return transactions.filter { t ->
@@ -160,11 +167,12 @@ class QueryExecutor(
         if (t.base.currency == out) return t.baseAbs
         if (t.original.currency == out) return t.original.abs()
         if (t.account.currency == out) return t.account.abs()
-        val c = converter ?: return Money(0, out).also { unconverted++ }
+        val c = converter ?: return Money(0, out)
         return c(t.baseAbs, out, t.localDate(zone)).abs()
     }
 
-    private var unconverted = 0
+    private fun convertible(t: Transaction, out: CurrencyCode): Boolean =
+        converter != null || t.base.currency == out || t.original.currency == out || t.account.currency == out
 
     private fun total(ts: Collection<Transaction>, out: CurrencyCode): Money = Money(ts.sumOf { amount(it, out).minor }, out)
 
@@ -184,14 +192,17 @@ class QueryExecutor(
 
     private fun groupRows(ts: List<Transaction>, g: GroupBy, out: CurrencyCode): List<AnswerRow> {
         val groups = if (g == GroupBy.MERCHANT) ts.groupBy { it.merchantKey() ?: "unknown" } else ts.groupBy { groupKey(it, g) }
-        return groups.map { (k, items) ->
+        val rows = groups.entries.map { (k, items) ->
             val label = when (g) {
                 GroupBy.MERCHANT -> items.lastOrNull { it.merchant != null }?.merchant ?: MerchantNormalizer.display(k)
                 GroupBy.MONTH -> YearMonth.parse(k).let { "${it.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} ${it.year}" }
                 else -> k
             }
-            AnswerRow(label, total(items, out), items.size)
-        }.let { rows -> if (g == GroupBy.MONTH) rows.sortedBy { r -> ts.firstOrNull { groupKey(it, g).let { k -> YearMonth.parse(k).let { ym -> "${ym.month.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)} ${ym.year}" } } == r.label }?.occurredAt } else rows.sortedByDescending { it.amount!!.minor } }
+            Triple(k, label, items)
+        }
+        val sorted = if (g == GroupBy.MONTH) rows.sortedBy { it.first }
+        else rows.sortedByDescending { r -> total(r.third, out).minor }
+        return sorted.map { (_, label, items) -> AnswerRow(label, total(items, out), items.size) }
     }
 
     private fun grouped(q: Query, ts: List<Transaction>, out: CurrencyCode, verb: String, subject: String, period: String): Answer {
@@ -272,7 +283,7 @@ class QueryExecutor(
         if (q.merchant != null) append(" on ${display(q.merchant)}")
         if (q.category != null) append(" on ${q.category.replaceFirstChar { it.lowercase() }.let { c -> categoriesById.values.firstOrNull { it.name.equals(q.category, true) }?.name ?: c }}")
         if (q.trip != null) append(" on your ${trips.firstOrNull { it.name.contains(q.trip, true) }?.name ?: display(q.trip)} trip")
-        if (q.country != null) append(" in ${Locale("", q.country).getDisplayCountry(Locale.ENGLISH)}")
+        if (q.country != null) append(" in ${regionLocale(q.country).getDisplayCountry(Locale.ENGLISH)}")
         if (q.account != null) append(" using ${q.account}")
         if (q.tag != null) append(" tagged #${q.tag}")
         if (q.currency != null) append(" in ${q.currency} transactions")
