@@ -8,7 +8,8 @@ class MoneyTest {
     @Test
     fun parsesWithExponent() {
         assertEquals(123450L, Money.of("1,234.50", "INR").minor)
-        assertEquals(1235L, Money.of("1234.5", "JPY").minor)
+        assertEquals(1234L, Money.of("1234.5", "JPY").minor) // HALF_EVEN
+        assertEquals(1236L, Money.of("1235.5", "JPY").minor)
         assertEquals(1234500L, Money.of("1234.5", "KWD").minor)
     }
 
