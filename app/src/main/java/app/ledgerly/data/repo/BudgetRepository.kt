@@ -61,6 +61,10 @@ data class BudgetOverview(
     val total: Money?,
     val spent: Money,
     val lines: List<BudgetLineUi>,
+    /** Spend per top-level category id in the period, largest first. */
+    val byTopLevel: List<Pair<String, Money>> = emptyList(),
+    /** Period transactions (base-currency view) for charts. */
+    val transactions: List<Transaction> = emptyList(),
 )
 
 data class BudgetCrossing(val label: String, val threshold: Int, val spent: Money, val limit: Money)
@@ -98,7 +102,7 @@ class BudgetRepository(
         }
         val total = budget?.totalMinor?.let { Money(it, ccy) }
             ?: if (lines.isNotEmpty()) Money(lineUis.sumOf { it.limit.minor }, ccy) else null
-        return BudgetOverview(budget, period, total, SpendMath.netSpent(txns, ccy), lineUis)
+        return BudgetOverview(budget, period, total, SpendMath.netSpent(txns, ccy), lineUis, SpendMath.spentByTopLevel(txns, ccy, byId), txns)
     }
 
     suspend fun ensureBudget(base: CurrencyCode): BudgetEntity =

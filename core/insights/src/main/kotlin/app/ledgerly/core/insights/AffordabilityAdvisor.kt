@@ -74,7 +74,7 @@ class AffordabilityAdvisor(
         val limit = purchase.categoryId?.let { budgetLimits[it] }
         var before: Money? = null
         var after: Money? = null
-        if (limit != null && purchase.categoryId != null) {
+        if (limit != null) {
             val ym = YearMonth.from(purchase.date)
             val spent = history.filter {
                 it.isSpend() && it.base.currency == limit.currency && YearMonth.from(it.localDate(zone)) == ym &&
