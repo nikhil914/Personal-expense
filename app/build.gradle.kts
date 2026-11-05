@@ -3,12 +3,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // Ledgerly Android app. Only included in the build when an Android SDK is available
 // (see root settings.gradle.kts). Build instructions and plugin-classpath notes: app/README.md.
 plugins {
-    alias(libs.plugins.android.application)
+    // Versions come from the root buildscript classpath (see root build.gradle.kts).
+    id("com.android.application")
     // No version: the Kotlin Gradle plugin (2.0.21) is already on the root build classpath because the
     // root build.gradle.kts declares kotlin("jvm") version "2.0.21" apply false.
     id("org.jetbrains.kotlin.android")
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
 }
 
 android {
