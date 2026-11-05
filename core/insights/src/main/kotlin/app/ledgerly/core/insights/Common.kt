@@ -49,7 +49,7 @@ object MerchantNormalizer {
         "paypal*", "razorpay*", "rzp*",
     )
     private val suffixNoise = Regex(
-        "\\b(pvt|private|ltd|limited|inc|llc|corp|co|technologies|technology|india|internet|services|" +
+        "\\b(pvt|private|ltd|limited|inc|llc|corp|co|technologies|technology|internet|services|" +
             "online|payments|retail|bv|gmbh|plc|com|www)\\b",
     )
 

@@ -104,6 +104,8 @@ class QueryParser(
                 if (r1 != null) { q = q.copy(range = r1.range); text = text.replaceFirst(r1.matchedText, " ") }
                 if (r2 != null) { q = q.copy(compareRange = r2.range); text = text.replaceFirst(r2.matchedText, " ") }
                 text = text.replaceFirst(compareSplit.value, " ")
+            } else {
+                TimeExpressionParser(today).find(text)?.let { m -> q = q.copy(range = m.range); text = text.replaceFirst(m.matchedText, " ") }
             }
             if (q.range == null) {
                 val ym = java.time.YearMonth.from(today)
@@ -252,7 +254,7 @@ class QueryParser(
             loop@ for (g in CategorySynonyms.groups) for (w in g.sortedByDescending { it.length }) {
                 val m = Regex("\\b${Regex.escape(w)}\\b").find(text) ?: continue
                 if (q.subscriptionsOnly && g.first() == "subscriptions") continue
-                categoryHit = (vocabulary.categories.firstOrNull { cat -> categoryMatchesTerm(cat.name, w) }?.name ?: w) to m.range
+                categoryHit = (vocabulary.categories.firstOrNull { cat -> categoryMatchesTerm(cat.name, w) }?.name ?: g.first()) to m.range
                 break@loop
             }
         }

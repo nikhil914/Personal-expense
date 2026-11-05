@@ -96,10 +96,10 @@ class HeuristicExtractor(private val config: ParserConfig = ParserConfig()) {
         if (kind != MessageKind.UNKNOWN) c += 0.2
         if (amount != null) c += if (explicitCurrency) 0.25 else 0.12
         if (last4 != null) c += 0.1
-        if (merchant != null) c += 0.07
+        if (merchant != null) c += 0.06
         if (reference != null) c += 0.04
         if (dateHit != null) c += 0.04
-        if (institution != null) c += 0.04
+        if (institution != null) c += 0.03
         if (kind in Kinds.LEDGER && amount == null) c = minOf(c, 0.3)
         if (kind == MessageKind.UNKNOWN) c = minOf(c, 0.5)
 

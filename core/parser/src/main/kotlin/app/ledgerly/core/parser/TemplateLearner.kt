@@ -54,7 +54,7 @@ class TemplateLearner(
 
         // Amount (+ adjacent currency marker).
         val target = c.amount.toDecimal()
-        val numberRx = Regex("(?<![\\d.,])${AmountParser.NUMBER}")
+        val numberRx = Regex("(?<![\\d,]|\\d\\.)${AmountParser.NUMBER}")
         val candidates = numberRx.findAll(text).filter { m -> AmountParser.parseNumber(m.value)?.compareTo(target) == 0 }.toList()
         if (candidates.isEmpty()) return LearnResult.Failed("amount ${target.toPlainString()} not found in message")
         val prefixRx = Regex("(?<![A-Za-z])(${Currencies.PREFIX_TOKEN})\\s*$")
