@@ -4,7 +4,7 @@ package app.ledgerly.core.dedup
 object Similarity {
 
     fun jaro(a: String, b: String): Double {
-        if (a == b) return if (a.isEmpty()) 1.0 else 1.0
+        if (a == b) return 1.0
         if (a.isEmpty() || b.isEmpty()) return 0.0
         val window = maxOf(0, maxOf(a.length, b.length) / 2 - 1)
         val aM = BooleanArray(a.length)
@@ -89,7 +89,9 @@ object Similarity {
     /** Normalise a payment reference: alphanumerics only, uppercase, leading zeros stripped. */
     fun normaliseReference(ref: String?): String? {
         if (ref.isNullOrBlank()) return null
-        val r = ref.uppercase().filter { it.isLetterOrDigit() }.trimStart('0')
+        val r = ref.uppercase()
+            .replace(Regex("\\b(UPI|IMPS|NEFT|REF|RRN|TXN|TRANSACTION|AUTH|APPROVAL|CODE|NO|ID|NUMBER)\\b"), " ")
+            .filter { it.isLetterOrDigit() }.trimStart('0')
         return r.takeIf { it.length >= 4 }
     }
 

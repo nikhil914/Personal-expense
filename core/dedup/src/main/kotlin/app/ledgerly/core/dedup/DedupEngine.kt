@@ -52,9 +52,9 @@ data class DedupConfig(
     val wDifferentChannel: Double = 0.10,
     val penaltyMerchantDifferent: Double = 0.25,
     val penaltySameChannel: Double = 0.50,
-    val penaltyReferenceConflict: Double = 0.30,
+    val penaltyReferenceConflict: Double = 0.45,
     val merchantSimilarAt: Double = 0.80,
-    val merchantDifferentBelow: Double = 0.50,
+    val merchantDifferentBelow: Double = 0.65,
 )
 
 /** Debit/credit of an existing transaction. The model has no direction field, so this is inferred by default. */

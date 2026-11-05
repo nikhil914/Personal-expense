@@ -85,10 +85,8 @@ class AuthSettlementLinker(
         }
         if (Fields.ACCOUNT !in locked) {
             val acc = settlement.accountAmount ?: settlement.amount.takeIf { it.currency == auth.account.currency }
+            // If the account amount is unknown (settled in a third currency), the old estimate stays until FX re-enrichment.
             if (acc != null) { t = t.copy(account = signed(acc)); changed += Fields.ACCOUNT }
-            else if (settlement.amount.currency != auth.account.currency) {
-                // Account amount unknown yet: keep estimate, FX re-enrichment required.
-            }
             if (t.base.currency == t.account.currency) t = t.copy(base = t.account)
             else if (t.base.currency == t.original.currency) t = t.copy(base = t.original)
         }

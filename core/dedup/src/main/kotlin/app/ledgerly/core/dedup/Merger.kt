@@ -28,7 +28,7 @@ data class MergeResult(
     /** Balance reported by the candidate (SMS usually), not storable on Transaction. */
     val balanceAfter: Money?,
     /** Line items from an email receipt. */
-    val lineItems: List<app.ledgerly.core.dedup.LineItem>,
+    val lineItems: List<LineItem>,
     /** True when original/account amounts changed, so FX fields should be re-enriched. */
     val needsFxReenrich: Boolean,
 )
