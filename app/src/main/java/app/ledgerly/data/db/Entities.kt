@@ -25,13 +25,11 @@ enum class ReviewState { OK, NEEDS_REVIEW, POSSIBLE_DUPLICATE }
 
 enum class AuditActor { USER, PARSER, RULE, DEDUP, SYSTEM }
 
-enum class AuditEventType { CREATED, UPDATED, CATEGORISED, MERGED, SPLIT, DELETED, RESTORED, REVIEWED, FX_ENRICHED }
 
 enum class BudgetPeriod { MONTHLY, WEEKLY, YEARLY, TRIP }
 
 enum class BudgetMethod { CATEGORY, ENVELOPE, FIFTY_THIRTY_TWENTY, FLEXIBLE }
 
-enum class Cadence { WEEKLY, MONTHLY, QUARTERLY, YEARLY, CUSTOM }
 
 enum class RuleField { MERCHANT, SENDER, TEXT }
 

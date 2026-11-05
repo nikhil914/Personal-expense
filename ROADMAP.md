@@ -24,16 +24,17 @@ The core modules are pure Kotlin/JVM, so they build and are unit-tested without 
 
 ## Phases
 
-### Phase 1: Core engine (in progress)
-- [ ] `core:model` Money + domain types
-- [ ] `core:parser` SMS/notification parsing for major Indian banks, UPI apps, and global cards (Amex, Revolut, Wise, HSBC, Chase-style alerts); OTP/promo filtering; review queue; learning templates from corrections
-- [ ] `core:fx` multi-currency: market rate, applied rate, FX fee; foreign cash pools; trip detection
-- [ ] `core:dedup` **one payment, one entry** merge engine with source badges
-- [ ] `core:audit` immutable change log, trash, undo, reconciliation score
-- [ ] `core:budget` budgets + **safe to spend today**
-- [ ] `core:insights` subscriptions, forecast, **ATM cash-gap prompt**, **natural-language questions**, can-I-afford
+### Phase 1: Core engine (done, 602 tests)
+- [x] `core:model` Money + domain types
+- [x] `core:parser` SMS/notification parsing for major Indian banks, UPI apps, and global cards (Amex, Revolut, Wise, HSBC, Chase-style alerts); OTP/promo filtering; review queue; learning templates from corrections
+- [x] `core:fx` multi-currency: market rate, applied rate, FX fee; foreign cash pools; trip detection
+- [x] `core:dedup` **one payment, one entry** merge engine with source badges
+- [x] `core:audit` immutable change log, trash, undo, reconciliation score
+- [x] `core:budget` budgets + **safe to spend today**
+- [x] `core:insights` subscriptions, forecast, **ATM cash-gap prompt**, **natural-language questions**, can-I-afford
 
-### Phase 2: Android app MVP
+### Phase 2: Android app MVP (code written, not yet compiled: needs Android SDK)
+- [x] `core:engine` contracts + adapters (parser, dedup, Ask wired; fx/audit/budget/insights still on fallbacks)
 - [ ] Room schema (SQLCipher), repositories
 - [ ] SMS receiver + history import (with prominent disclosure + consent)
 - [ ] NotificationListenerService with a per-app allow-list (bank, UPI, Gmail)

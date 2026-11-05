@@ -91,6 +91,7 @@ dependencies {
     implementation(project(":core:audit"))
     implementation(project(":core:budget"))
     implementation(project(":core:insights"))
+    implementation(project(":core:engine"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

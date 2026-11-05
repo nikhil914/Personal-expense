@@ -27,6 +27,7 @@ include(
     ":core:audit",
     ":core:budget",
     ":core:insights",
+    ":core:engine",
 )
 
 // Android app module: only included when an Android SDK is available.
