@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 
 /** Manual dependency injection. One instance per process, owned by [LedgerlyApp]. */
 class AppContainer(context: Context) {
-    private val appContext: Context = context.applicationContext
+    val appContext: Context = context.applicationContext
 
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

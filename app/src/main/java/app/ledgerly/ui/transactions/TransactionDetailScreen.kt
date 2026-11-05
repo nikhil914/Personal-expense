@@ -111,7 +111,7 @@ class TransactionDetailViewModel(private val c: AppContainer, private val id: St
         c.categoryRepository.addMerchantRule(merchant, categoryId, id)
     }
 
-    private fun appContext(container: AppContainer): android.content.Context = container.notifier.let { container.appContext }
+    private fun appContext(container: AppContainer): android.content.Context = container.appContext
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
